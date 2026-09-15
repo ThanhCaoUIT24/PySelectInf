@@ -131,27 +131,11 @@ class Pipeline:
         # print(f"Variance: {variance}")
         # print(f"Deviation: {deviation}")
 
-        # Compute search bounds (following PADI logic)
-        search_itv = [-20 * deviation, 20 * deviation]
-        if not (search_itv[0] <= test_statistic <= search_itv[1]):
-            search_itv = [-1.1 * abs(test_statistic), 1.1 * abs(test_statistic)]
-
-        # Intersect with sign constraint interval
-        z_min = max(search_itv[0], itv[0]) if itv[0] is not None else search_itv[0]
-        z_max = min(search_itv[1], itv[1]) if itv[1] is not None else search_itv[1]
-
-        # Ensure z_obs is within bounds
-        z_min = min(z_min, test_statistic)
-        z_max = max(z_max, test_statistic)
-
-        # Adaptive step size: use deviation-based step for efficiency
-        step_size = max(deviation * 1e-3, 1e-4)
-
         list_intervals, list_outputs = line_search(
             self.output_node,
-            z_min=z_min,
-            z_max=z_max,
-            step_size=step_size,
+            z_min=min(max(-20 * deviation, itv[0]), test_statistic),
+            z_max=max(min(20 * deviation, itv[1]), test_statistic),
+            step_size=1e-4,
         )
         p_value = compute_p_value(
             test_statistic, variance, list_intervals, list_outputs, output
