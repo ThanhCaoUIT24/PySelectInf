@@ -21,7 +21,8 @@ class DeepSVDDAD:
         self.x_node = None
         self.anomaly_node = Data(self)
 
-        self.model = model.to(device)
+        # Cast model to float64 to be consistent with the float64 inference pipeline
+        self.model = model.to(device).double()
         self.network_type = network_type
         if self.network_type == "cnn":
             self.inference_model = CNNInferenceModel(
@@ -67,7 +68,7 @@ class DeepSVDDAD:
         scores : array of float
             Deep SVDD scores for each sample.
         """
-        x_tensor = torch.tensor(x, dtype=torch.float32, device=self.device)
+        x_tensor = torch.tensor(x, dtype=torch.float64, device=self.device)
         # Reshape flat (n, d) to (n, C, H, W) if img_shape is specified
         if self.img_shape is not None and x_tensor.ndim == 2:
             n = x_tensor.shape[0]
